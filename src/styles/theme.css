@@ -1,0 +1,159 @@
+/* Shared design contract. Change values here, not in page components. */
+:root {
+  color-scheme: light;
+
+  --background: #faf9f5;
+  --foreground: #242620;
+  --card: #ffffff;
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: #cc302c;
+  --primary-foreground: #ffffff;
+  --secondary: #efeee8;
+  --secondary-foreground: var(--foreground);
+  --muted: #f0efe9;
+  --muted-foreground: #696b62;
+  --accent: #e9eddf;
+  --accent-foreground: #394c30;
+  --destructive: #c12d29;
+  --border: #e1e2d9;
+  --input: #d4d6ca;
+  --ring: #b92723;
+  --ink: #242620;
+  --paper: #ffffff;
+  --hero-card: #f8dc69;
+  --hero-card-back: #e1e8d2;
+  --hero-card-accent: #f0bba3;
+
+  /* The 18-type palette, each with a readable text pairing. */
+  --type-normal: #a8a878;
+  --type-normal-foreground: #242620;
+  --type-fire: #f08030;
+  --type-fire-foreground: #242620;
+  --type-water: #476bc5;
+  --type-water-foreground: #ffffff;
+  --type-electric: #f8d030;
+  --type-electric-foreground: #242620;
+  --type-grass: #78c850;
+  --type-grass-foreground: #242620;
+  --type-ice: #98d8d8;
+  --type-ice-foreground: #242620;
+  --type-fighting: #c03028;
+  --type-fighting-foreground: #ffffff;
+  --type-poison: #a040a0;
+  --type-poison-foreground: #ffffff;
+  --type-ground: #e0c068;
+  --type-ground-foreground: #242620;
+  --type-flying: #a890f0;
+  --type-flying-foreground: #242620;
+  --type-psychic: #d63263;
+  --type-psychic-foreground: #ffffff;
+  --type-bug: #a8b820;
+  --type-bug-foreground: #242620;
+  --type-rock: #b8a038;
+  --type-rock-foreground: #242620;
+  --type-ghost: #705898;
+  --type-ghost-foreground: #ffffff;
+  --type-dragon: #7038f8;
+  --type-dragon-foreground: #ffffff;
+  --type-dark: #705848;
+  --type-dark-foreground: #ffffff;
+  --type-steel: #b8b8d0;
+  --type-steel-foreground: #242620;
+  --type-fairy: #ee99ac;
+  --type-fairy-foreground: #242620;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-hero-card: var(--hero-card);
+  --color-hero-card-back: var(--hero-card-back);
+  --color-hero-card-accent: var(--hero-card-accent);
+  --color-type-normal: var(--type-normal);
+  --color-type-normal-foreground: var(--type-normal-foreground);
+  --color-type-fire: var(--type-fire);
+  --color-type-fire-foreground: var(--type-fire-foreground);
+  --color-type-water: var(--type-water);
+  --color-type-water-foreground: var(--type-water-foreground);
+  --color-type-electric: var(--type-electric);
+  --color-type-electric-foreground: var(--type-electric-foreground);
+  --color-type-grass: var(--type-grass);
+  --color-type-grass-foreground: var(--type-grass-foreground);
+  --color-type-ice: var(--type-ice);
+  --color-type-ice-foreground: var(--type-ice-foreground);
+  --color-type-fighting: var(--type-fighting);
+  --color-type-fighting-foreground: var(--type-fighting-foreground);
+  --color-type-poison: var(--type-poison);
+  --color-type-poison-foreground: var(--type-poison-foreground);
+  --color-type-ground: var(--type-ground);
+  --color-type-ground-foreground: var(--type-ground-foreground);
+  --color-type-flying: var(--type-flying);
+  --color-type-flying-foreground: var(--type-flying-foreground);
+  --color-type-psychic: var(--type-psychic);
+  --color-type-psychic-foreground: var(--type-psychic-foreground);
+  --color-type-bug: var(--type-bug);
+  --color-type-bug-foreground: var(--type-bug-foreground);
+  --color-type-rock: var(--type-rock);
+  --color-type-rock-foreground: var(--type-rock-foreground);
+  --color-type-ghost: var(--type-ghost);
+  --color-type-ghost-foreground: var(--type-ghost-foreground);
+  --color-type-dragon: var(--type-dragon);
+  --color-type-dragon-foreground: var(--type-dragon-foreground);
+  --color-type-dark: var(--type-dark);
+  --color-type-dark-foreground: var(--type-dark-foreground);
+  --color-type-steel: var(--type-steel);
+  --color-type-steel-foreground: var(--type-steel-foreground);
+  --color-type-fairy: var(--type-fairy);
+  --color-type-fairy-foreground: var(--type-fairy-foreground);
+}
+
+@theme {
+  --font-body: "DM Sans Variable", Arial, sans-serif;
+  --font-display: "Outfit Variable", "Arial Black", sans-serif;
+  --font-sans: var(--font-body);
+
+  --spacing: 0.25rem;
+  --spacing-page: clamp(1.25rem, 5vw, 5rem);
+  --spacing-section: clamp(3rem, 6vw, 6rem);
+  --container-site: 80rem;
+
+  --text-hero: clamp(3.25rem, 6.2vw, 6rem);
+  --text-hero--line-height: 1.02;
+  --text-hero--letter-spacing: -0.055em;
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1.5;
+  --text-eyebrow--letter-spacing: 0.14em;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 2.5rem;
+  --shadow-sm: 0 2px 4px color-mix(in srgb, var(--ink) 5%, transparent);
+  --shadow-xs: 0 1px 2px color-mix(in srgb, var(--ink) 5%, transparent);
+  --shadow-md: 0 8px 24px color-mix(in srgb, var(--ink) 8%, transparent);
+  --shadow-lg: 0 16px 40px color-mix(in srgb, var(--ink) 12%, transparent);
+  --shadow-card: 0 18px 48px -18px color-mix(in srgb, var(--ink) 30%, transparent);
+  --shadow-float: 0 8px 24px -6px color-mix(in srgb, var(--ink) 16%, transparent);
+}
