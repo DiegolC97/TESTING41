@@ -4,7 +4,17 @@ import { expect, test, type Page } from "@playwright/test";
 async function imagesReady(page: Page) {
   await page.evaluate(async () => {
     await document.fonts.ready;
-    await Promise.all(Array.from(document.images, (image) => image.decode()));
+    // Showcase artwork below the fold loads lazily; opt it in before waiting.
+    await Promise.all(Array.from(document.images, async (image) => {
+      image.loading = "eager";
+      if (!image.complete) {
+        await new Promise((resolve) => {
+          image.addEventListener("load", resolve, { once: true });
+          image.addEventListener("error", resolve, { once: true });
+        });
+      }
+      await image.decode();
+    }));
   });
 }
 
@@ -13,8 +23,11 @@ async function noOverflow(page: Page) {
 }
 
 async function expectAccessible(page: Page) {
-  // Measure final rendered colors after the dialog entrance animation.
-  await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)));
+  // Measure final rendered colors after the dialog entrance animation. Looping
+  // animations never finish, and streamed-away placeholders cancel theirs.
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+    .map((animation) => animation.finished.catch(() => undefined))));
   const { violations } = await new AxeBuilder({ page }).analyze();
   expect(violations.map(({ id, nodes }) => ({
     id,
@@ -116,4 +129,95 @@ test("images reserve space and theme tokens control the hero", async ({ page }) 
   await expect(page.locator("html")).toHaveCSS("color-scheme", "light");
   await noOverflow(page);
   await expectAccessible(page);
+});
+
+test("the showcase grid, CTA band, and footer complete the page", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  await page.goto("/");
+
+  const grid = page.getByRole("list", { name: "Pokémon in the Pokédex" });
+  const cards = grid.getByRole("listitem");
+  // The loading placeholder gives way to the resolved dataset.
+  await expect(page.getByText("Loading Pokémon…")).toHaveCount(0);
+  await expect(cards.first()).toBeVisible();
+  expect(await cards.count()).toBeGreaterThanOrEqual(8);
+  await imagesReady(page);
+
+  // Every card carries a name, artwork, an identifier, and at least one type badge.
+  for (const card of await cards.all()) {
+    await expect(card.getByRole("heading", { level: 3 })).toHaveText(/\S+/);
+    await expect(card.locator("img")).toHaveAttribute("alt", /\S+/);
+    await expect(card.getByText(/^#\d{3}$/)).toBeVisible();
+    expect(await card.locator("[data-slot=badge]").count()).toBeGreaterThan(0);
+    const box = (await card.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width + 1);
+  }
+
+  // Sections appear below the hero in order, and the footer renders at every width.
+  const top = async (locator: ReturnType<Page["locator"]>) => (await locator.boundingBox())!.y;
+  const order = [
+    await top(page.locator("h1")),
+    await top(page.getByRole("heading", { name: /a whole story/ })),
+    await top(page.getByRole("heading", { name: /Your partner is out there/ })),
+    await top(page.getByRole("contentinfo")),
+  ];
+  expect(order).toEqual([...order].sort((a, b) => a - b));
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "PokéPal home" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Meet the starters" })).toBeVisible();
+
+  await noOverflow(page);
+  await expectAccessible(page);
+  expect(errors).toEqual([]);
+});
+
+test("cards open a detail dialog and hand focus back", async ({ page }) => {
+  await page.goto("/");
+  const card = page.getByRole("button", { name: /^Gengar, number 094/ });
+  await card.click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toHaveAccessibleName(/Gengar/);
+  await expect(dialog.getByText("The Shadow Pokémon")).toBeVisible();
+  await expect(dialog.getByText("Cursed Body")).toBeVisible();
+  await expect(dialog.getByRole("img", { name: /Gengar/ })).toBeVisible();
+
+  // Focus stays inside the open dialog.
+  for (let i = 0; i < 4; i++) {
+    await page.keyboard.press("Tab");
+    expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBeTruthy();
+  }
+  await noOverflow(page);
+  await expectAccessible(page);
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(card).toBeFocused();
+  // The ring is painted by the card shell, which is what stays unclipped.
+  const shell = page.getByRole("listitem").filter({ has: card }).locator("[data-slot=card]");
+  await expect(shell).toHaveCSS("outline-width", "2px");
+  await expect(shell).toHaveCSS("outline-style", "solid");
+});
+
+test("type badges follow the shared palette and in-page links reach the sections", async ({ page }) => {
+  await page.goto("/");
+  const electricBadge = page.getByRole("list", { name: "Pokémon in the Pokédex" }).getByText("electric", { exact: true }).first();
+  await expect(electricBadge).toHaveCSS("background-color", "rgb(248, 208, 48)");
+  await page.evaluate(() => document.documentElement.style.setProperty("--type-electric", "rgb(10, 90, 140)"));
+  await expect(electricBadge).toHaveCSS("background-color", "rgb(10, 90, 140)");
+  await page.evaluate(() => document.documentElement.style.removeProperty("--type-electric"));
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await page.getByRole("link", { name: "Meet the Pokémon below" }).click();
+  expect(page.url()).toContain("#showcase");
+  await expect(page.locator("#showcase")).toBeInViewport({ ratio: 0.1 });
+  await expect.poll(async () => (await page.locator("#showcase").boundingBox())!.y).toBeLessThan(120);
+
+  await page.getByRole("navigation", { name: "Footer navigation" }).getByRole("link", { name: "Get started" }).click();
+  expect(page.url()).toContain("#start");
+  await expect(page.locator("#start")).toBeInViewport({ ratio: 0.5 });
+  await expect(page.getByRole("button", { name: "Meet the starters" })).toBeVisible();
 });
